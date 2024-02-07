@@ -67,6 +67,6 @@ This project is licensed under the GNU General Public License Version 3 - see th
 
 ## Acknowledgments
 
-IMIFA package: Murphy, K., Viroli, C., and Gormley, I. C. (2020). Infinite mixtures of infinite factor analysers. Bayesian Analysis, 15(3): 937–963. <doi:10.1214/19-BA1179>
-ComplexHeatmap package: Gu Z, Eils R, Schlesner M (2016). “Complex heatmaps reveal patterns and correlations in multidimensional genomic data.” Bioinformatics. <doi:10.1093/bioinformatics/btw313>
-Circlize package: Gu, Z. circlize implements and enhances circular visualization in R. Bioinformatics 2014.
+* IMIFA package: Murphy, K., Viroli, C., and Gormley, I. C. (2020). Infinite mixtures of infinite factor analysers. Bayesian Analysis, 15(3): 937–963. <doi:10.1214/19-BA1179>
+* ComplexHeatmap package: Gu Z, Eils R, Schlesner M (2016). “Complex heatmaps reveal patterns and correlations in multidimensional genomic data.” Bioinformatics. <doi:10.1093/bioinformatics/btw313>
+* Circlize package: Gu, Z. circlize implements and enhances circular visualization in R. Bioinformatics 2014.
