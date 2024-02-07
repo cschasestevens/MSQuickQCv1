@@ -1,0 +1,194 @@
+/* Individual Header Styles */
+
+h2 {
+
+color: #D6EAF8;
+text-align: center;
+background-color: #1B4F72;
+font-size: 32px;
+margin: 0px;
+
+}
+
+hr {
+
+border: 5px solid black;
+border-radius: 3px;
+margin: 2px;
+
+}
+
+h4 {
+
+    text-align: center;
+    color: #1B4F72;
+    font-size: 24px;
+    font-weight: bold;
+
+}
+
+h5 {
+
+    text-align: center;
+    color: #1B4F72;
+    font-size: 16px;
+    font-weight: bold;
+    margin: 0 25% 0 25%;
+    width: 50%;
+
+}
+
+/* Section Headings*/
+
+#tpar {
+
+    background-color: #AED6F1;
+    border: 2px solid #2E86C1;
+
+}
+
+#tupl {
+
+    
+    background-color: #AED6F1;
+    border: 2px solid #2E86C1;
+
+}
+
+#prev {
+
+    
+    background-color: #AED6F1;
+    border: 2px solid #2E86C1;
+
+}
+
+.col-sm-12 {
+
+    background-color: #D6EAF8;
+    border: 2px solid #2E86C1;
+    margin: 0px;
+
+}
+
+/* Section Contents */
+
+p {
+
+    font-size: 16px;
+    text-align: justify;
+    color: #1B4F72;
+    padding: 2px;
+    margin: 5px;
+
+}
+
+br {
+
+    content: "";
+    margin: 0;
+
+}
+
+.form-group.shiny-input-container {
+
+    margin: 0px 25% 0px 25%;
+    padding: 2px;
+    text-align: center;
+    display: inline-block;
+    width: 50%;
+    
+}
+
+#file1_progress {
+
+    margin: 0px;
+    padding: 2px;
+
+}
+
+/* Button styles */
+
+.input-group-btn.input-group-prepend {
+
+    color: #1B4F72;
+
+}
+
+#submit {
+
+    margin: 2px 25% 2px 25%;
+    padding: 2px;
+    text-align: center;
+    display: inline-block;
+    width: 50%;
+    font-weight: bold; 
+    color: #1B4F72;
+
+
+}
+
+#report {
+
+    margin: 2px 25% 2px 25%;
+    padding: 2px;
+    text-align: center;
+    display: inline-block;
+    width: 50%;
+    font-weight: bold; 
+    color: #1B4F72;
+
+
+}
+
+#plots {
+
+    margin: 2px 25% 2px 25%;
+    padding: 2px;
+    text-align: center;
+    display: inline-block;
+    width: 50%;
+    font-weight: bold;
+    color: #1B4F72;
+
+}
+
+#tables {
+
+    margin: 2px 25% 2px 25%;
+    padding: 2px;
+    text-align: center;
+    display: inline-block;
+    width: 50%;
+    font-weight: bold; 
+    color: #1B4F72;
+
+
+}
+
+
+/* Data Preview Panels */
+
+.col-sm-4 {
+
+    height: 600px;
+    margin: 0;
+    background-color: #D6EAF8;
+    border: 2px solid #2E86C1;
+
+}
+
+.dataTables_wrapper.no-footer {
+
+    text-align: center;
+    max-height: 90%;
+    margin: 2px 5% 2px 5%;
+    max-width: 90%;
+    padding: 5px;
+    color: #1B4F72;
+
+}
+
+
+
+

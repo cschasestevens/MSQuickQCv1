@@ -1,0 +1,824 @@
+---
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+title: "Quality Control Report"
+output: 
+  html_document: 
+    theme: cerulean
+    css: "www/style.css"
+params:
+  dat1: NA
+  cls1: NA
+  std: NA
+  nm: NA 
+  chr: NA 
+  i1: NA 
+  pl: NA 
+  ba: NA 
+  dt: NA 
+  pr: NA 
+  nor: NA 
+  q1: NA 
+  q2: NA 
+  q3: NA 
+  
+  rendered_by_shiny: FALSE
+---
+
+
+```{r setup, include=FALSE}
+
+# default parameters for plot output
+
+knitr::opts_chunk$set(echo = F, warning = F,
+                      message = F,
+                      dpi = 700,
+                      fig.width = 12)
+
+
+
+
+
+```
+
+
+
+
+
+```{r libraries, echo=FALSE, results=F, message=F, warning=F}
+
+#### Load libraries and plot themes ####
+
+source("scripts/1_lib.R",
+       local = knitr::knit_global())
+
+if (params$rendered_by_shiny)
+  shiny::setProgress(value = 0.05,
+                     message = "Loading plot libraries and themes...")
+
+```
+
+
+
+
+
+```{r import, echo=FALSE, results=F, message=F, warning=F}
+
+#### Data input parameters ####
+
+## input list of dataframes (two MAX; if only one is provided, script calculates QC parameters on a single data set)
+
+path.qc <- "files/"
+
+list.qc.files <- list.files(paste(getwd(),
+                "/",path.qc,
+                sep = ""),
+          full.names = F,
+          recursive = F)
+
+## For 1 dataset
+
+fun.list.qc.1 <- function(i) {
+  
+  qc.data <- data.frame(File.ID = i,
+                           Path = paste(getwd(),
+                                      "/",
+                                      path.qc,
+                                      i,
+                                      sep = ""),
+                           MSI.avail = c("N"),
+                           qc1 = c("qc1"),
+                           qc2 = c("qc2"),
+                           qc3 = c("qc3"),
+                           iSTD = c("iSTD"),
+                           Metadata.col = c(4),
+                           Date = c("2024/01"),
+                           Study.Name = c("Ex1"),
+                           Platform = c("LC-MS/MS (CSH)"),
+                           Polarity = c("POS"),
+                           Instrument = c("Q-Exactive HF Hybrid Orbitrap"),
+                           Processing = c("MS-DIAL v.5.0"),
+                           Norm.meth = c("SERRF"),
+                           Report.Author = c("Chase")
+                        )
+  
+  return(qc.data)
+  
+  }
+
+
+## For 2 datasets
+
+fun.list.qc.2 <- function(i) {
+  
+  qc.data <- data.frame(File.ID = i,
+                           Path = paste(getwd(),
+                                      "/",
+                                      path.qc,
+                                      i,
+                                      sep = ""),
+                           MSI.avail = c("Y","Y"),
+                           qc1 = c("qc1","Pool QC"),
+                           qc2 = c("qc2","Bio IVT"),
+                           qc3 = c("qc3","Method Blank"),
+                           iSTD = c("iSTD","iSTD"),
+                           Metadata.col = c(4,4),
+                           Date = c("yyyy/mm","yyyy/mm"),
+                           Study.Name = c("Ex1","Ex2"),
+                           Platform = c("CSH","CSH"),
+                           Polarity = c("POS","CSH"),
+                           Instrument = c("QEHF","QEHF"),
+                           Processing = c("MS-DIAL v.5.0","MS-DIAL v.5.0"),
+                           Norm.meth = c("Raw","Norm"),
+                           Report.Author = rep("Chase",2)
+                        )
+  
+  return(qc.data)
+  
+  }
+
+
+## Generate data table for selected file using specified input parameters
+
+ifelse(length(list.qc.files) < 2,
+       list.qc.data <- fun.list.qc.1(list.qc.files),
+       list.qc.data <- fun.list.qc.2(list.qc.files))
+
+if (params$rendered_by_shiny)
+  shiny::setProgress(value = 0.075,
+                     message = "Transferring inputs to report...")
+
+
+#### Create cluster for parallel calculations ####
+
+source("scripts/2_cluster_create.R",
+       local = knitr::knit_global())
+
+if (params$rendered_by_shiny)
+  shiny::setProgress(value = 0.15,
+                     message = "Creating cluster for parallelization...")
+
+
+#### Read files ####
+ 
+source("scripts/3_dataimport.R",
+       local = knitr::knit_global())
+
+## pass new variables to cluster
+
+clusterExport(clus1,varlist = c("list.qc.nos"))
+
+
+if (params$rendered_by_shiny)
+  shiny::setProgress(value = 0.25,
+                     message = "Importing data...")
+
+
+
+#### Conditions ####
+
+eval.istd <- unique(ifelse(grepl("NA",
+                          list.qc.data[["iSTD"]]),
+                    F,
+                    T))
+
+eval.qc <- unique(ifelse(grepl("NA",
+                        list.qc.data[["qc1"]]) &
+                    grepl("NA",
+                        list.qc.data[["qc2"]]) &
+                    grepl("NA",
+                        list.qc.data[["qc3"]]),
+                  F,
+                  T))
+
+eval.file.num <- ifelse(length(list.qc.data[["File.ID"]]) == 2,
+                        "90%",
+                        "45%")
+
+```
+
+
+
+
+
+
+#### **`r paste(list.qc.data[["File.ID"]],sep = " and ")`**
+
+#### Prepared by: `r list.qc.data[["Report.Author"]][[1]]` 
+
+
+### **Study Details**
+
+Sample Numbers: **`r ifelse(length(list.qc.data[["Sample.No"]]) == 2,paste("File 1: ",list.qc.data[["Sample.No"]][[1]],", File 2: ",list.qc.data[["Sample.No"]][[2]],sep = ""),paste(list.qc.data[["Sample.No"]][[1]]))`**  
+Analysis Platform: **`r ifelse(length(list.qc.data[["Platform"]]) == 2,paste(list.qc.data[["Platform"]][[1]],list.qc.data[["Platform"]][[2]],sep = " & "),paste(list.qc.data[["Platform"]][[1]]))`**  
+Analysis Date: **`r ifelse(length(list.qc.data[["Date"]]) == 2,paste(list.qc.data[["Date"]][[1]],list.qc.data[["Date"]][[2]],sep = " & "),paste(list.qc.data[["Date"]][[1]]))`**    
+
+
+### **Dataset Details**  
+
+Samples were analyzed by **`r ifelse(length(list.qc.data[["Platform"]]) == 2,paste(list.qc.data[["Platform"]][[1]],list.qc.data[["Platform"]][[2]],sep = " & "),paste(list.qc.data[["Platform"]][[1]]))`** using a **`r ifelse(length(list.qc.data[["Instrument"]]) == 2,paste(list.qc.data[["Instrument"]][[1]],list.qc.data[["Instrument"]][[2]],sep = " & "),paste(list.qc.data[["Instrument"]][[1]]))`** mass spectrometer. A total of **`r ifelse(length(list.data$Imputed) == 2, paste(ncol(list.data$Imputed[[1]][,-c(1:list.qc.data[[1,"Metadata.col"]])]),ncol(list.data$Imputed[[2]][,-c(1:list.qc.data[[2,"Metadata.col"]])]),sep = " & "), ncol(list.data$Imputed[[1]][,-c(1:list.qc.data[[1,"Metadata.col"]])]))`** compounds were annotated in the specified analytical platform. All data processing was completed using **`r ifelse(length(list.qc.data[["Processing"]]) == 2,paste(list.qc.data[["Processing"]][[1]],list.qc.data[["Processing"]][[2]],sep = " & "),paste(list.qc.data[["Processing"]][[1]]))`**. Data were normalized by **`r ifelse(length(list.qc.data[["Norm.meth"]]) == 2,paste(list.qc.data[["Norm.meth"]][[1]],list.qc.data[["Norm.meth"]][[2]],sep = " & "),paste(list.qc.data[["Norm.meth"]][[1]]))`**, and **`r ifelse(length(list.qc.data[["File.ID"]]) == 2,paste(paste(list.qc.data[1,"qc1"],list.qc.data[1,"qc2"],list.qc.data[1,"qc3"],sep = ","),paste(list.qc.data[2,"qc1"],list.qc.data[2,"qc2"],list.qc.data[2,"qc3"],sep = ","),sep = " & "),paste(list.qc.data[1,"qc1"],list.qc.data[1,"qc2"],list.qc.data[1,"qc3"],sep = ","))`** were used as quality control samples to assess technical variance and robustness of the analytical method. The results following data processing, curation, and normalization are included below.
+
+
+### **Data Distribution**
+
+The distribution of the data following Log2-transformation and Pareto scaling was assessed to determine overall normality prior to statistical analysis. Zeroes in the data sets are imputed with values corresponding to 10% of the lowest non-zero value present in the data. The resulting distribution plots are shown in **Figure 1**.
+
+```{r data-dist, echo=F, fig.align= "center", out.width="90%", results=T, message=F, warning=F}
+
+## Visualize Data Distribution ####
+
+## Update cluster variables
+
+clusterExport(clus1,varlist = c("list.data"))
+
+list.data[["Transformations"]] <- parLapply(clus1,
+                                            list.qc.nos,
+                                            function(x) fun.dst(list.data$Imputed[[x]],
+                                                                list.qc.data[x,"Metadata.col"],
+                                                                gsub("\\..*","",
+                                                                     list.qc.data[x,"File.ID"])))
+
+names(list.data$Transformations) <- list.qc.data$File.ID
+
+
+## Plots
+
+p.dist2 <- lapply(list.qc.nos,
+                  function(x) list.data$Transformations[[x]]$Plot)
+
+p.dist2 <- ggarrange(plotlist = p.dist2,
+                     nrow = length(list.qc.files),
+                     labels = list.qc.files,
+                     font.label = list(size = 8),
+                     hjust = 0)
+
+
+ggsave("plots/1_data_dist.png",
+           p.dist2,
+           width = 15,
+           height = length(list.qc.files)*5,
+           dpi = 700)
+
+knitr::include_graphics("plots/1_data_dist.png")
+
+if (params$rendered_by_shiny)
+  shiny::setProgress(value = 0.35,
+                     message = "Calculating data distributions...")
+
+
+
+
+
+```
+
+**Figure 1.** Normalized, Log2-transformed, and Pareto-scaled data distributions for specified data sets.
+
+
+
+
+
+### **Technical Variance**
+
+Principal Component Analysis (PCA) of the data was conducted to determine general variation among the quality control samples within the analysis. These results are shown in **Figure 2**.
+
+```{r var-pca, echo=F, fig.align= "center", out.width="80%", results=T, message=F, warning=F}
+
+# Generate combined PCA and standard deviation plot
+
+### Updated cluster variables
+
+clusterExport(clus1,varlist = c("list.data"))
+
+list.data[["PCA"]] <- parLapply(clus1,
+                                list.qc.nos,
+                                function(x) fun.pca(list.data$Transformations[[x]]$Data$`Pareto-scaled Datasheet`,
+                                     list.qc.data[x,"Metadata.col"],
+                                     "sampleType"))
+
+names(list.data$PCA) <- list.qc.data$File.ID
+
+p.tech.var <- lapply(list.qc.nos,
+                     function(x) list.data$PCA[[x]]$`Technical Variance - PCA`)
+
+p.tech.var <- ggarrange(plotlist = p.tech.var,
+                        nrow = length(p.tech.var),
+                        labels = list.qc.files,
+                     font.label = list(size = 10),
+                     hjust = 0)
+
+ggsave(paste("plots/",
+             "2_techvar_pca.png",
+             sep = ""), 
+       p.tech.var,
+       width = 16,
+       height = length(list.qc.files)*6,
+       dpi = 700)
+
+
+knitr::include_graphics("plots/2_techvar_pca.png")
+    
+if (params$rendered_by_shiny)
+  shiny::setProgress(value = 0.45,
+                     message = "Performing PCA and outlier detection...")
+
+
+
+
+
+```
+
+**Figure 2.** PCA of specified sample types. **A)** PCA plot of all samples, where individual samples that exceed 3 standard deviations from the mean mTIC within each group are flagged. **B)** Scatter plot displaying the number of standard deviations from the mean mTIC within each group per sample. **C-D)** correspond to **A** and **B**, respectively, when a second data set is included.
+
+
+
+
+
+Variation and signal drift were visualized throughout the sample acquisition by plotting the average combined peak heights of internal standards spiked in each sample. The variation in the average combined peak heights of internal standards is shown below (**Figure 3**).
+
+```{r var-istd, echo=F, fig.align= "center", out.width=eval.file.num, results=T, message=F, warning=F, eval=eval.istd}
+
+#### Variation in Internal Standards ####
+
+# iSTD variable function
+
+list.data[["iSTD.var"]] <- parLapply(clus1,
+                                list.qc.nos,
+                                function(x) fun.istd(list.data$Imputed[[x]],
+                                     list.qc.data[x,"Metadata.col"],
+                                     list.qc.data[x,"iSTD"]))
+
+names(list.data$iSTD.var) <- list.qc.data$File.ID
+
+
+# Plots
+
+p.istd.var <- ggarrange(plotlist = list.data$iSTD.var,
+                        ncol = length(list.data$iSTD.var),
+                        labels = list.qc.files,
+                     font.label = list(size = 10),
+                     hjust = 0)
+
+
+# Save and add to report
+
+ggsave("plots/3_techvar_std.png",
+       p.istd.var, 
+       width = length(list.qc.files)*10, 
+       height = 8, 
+       dpi = 700)
+
+
+knitr::include_graphics("plots/3_techvar_std.png")
+
+
+if (params$rendered_by_shiny)
+  shiny::setProgress(value = 0.55,
+                     message = "Assessing variation of internal standards...")
+
+
+
+
+
+```
+
+**Figure 3.** Average combined peak heights of all internal standards vs. injection order. The dashed line represents the overall average internal standard intensity across all sample types. 
+
+
+
+
+
+The relative standard deviations (RSD) of each annotated compound in quality control samples were assessed to determine variation within individual compounds. RSD values were used as a benchmark for including or excluding these compounds in downstream statistical analysis. The RSD values for compounds in quality control samples that exceed 50% are flagged and displayed below (**Figure 4**).
+
+```{r var-rsd-qc, echo=F, fig.align= "center", out.width="90%", results=T, message=F, warning=F}
+
+#### RSD of pooled quality control samples for Annotated Metabolites ####
+
+## Input
+
+list.data[["RSD"]][["QC"]] <- parLapply(clus1,
+                                        list.qc.nos,
+                                        function(x) fun.qc.filt(list.data$Imputed[[x]],
+                     list.qc.data[x,]))
+
+names(list.data$RSD$QC) <- list.qc.data$File.ID
+
+clusterExport(clus1,varlist = c("list.data"))
+
+
+if(length(as.data.frame(list.data$RSD$QC)) > 2){
+  
+  list.data$RSD[["QC - Plots"]] <- parLapply(clus1,
+                                             list.qc.nos,
+                                             function(x) fun.rsd.qc(list.data$RSD$QC[[x]],
+                                                                    x,
+                                                                    "sampleType",
+                                                                    col1b[c(1,4)],
+                                                                    "Technical Variance - Compound QC RSD")
+                                             )
+  
+    names(list.data$RSD$`QC - Plots`) <- list.qc.data$File.ID
+  
+  clusterExport(clus1,varlist = c("list.data"))
+  
+  
+  ## Plot
+  
+  p.rsd3 <- lapply(list.qc.nos,
+                   function(x) list.data$RSD$`QC - Plots`[[x]]$Plot)
+  
+  names(p.rsd3) <- list.qc.data$File.ID
+  
+  ifelse(length(p.rsd3) < 2,
+         ggsave("plots/4_techvar_comp.png",
+         p.rsd3[[1]] +
+           plot_layout(nrow = length(list.qc.files),
+                       tag_level = "new") +
+           plot_annotation(tag_levels = list(list.qc.files)),
+         width = 18,
+         height = length(list.qc.files)*9,
+         dpi = 700),
+         ggsave("plots/4_techvar_comp.png",
+         p.rsd3[[1]] + 
+           p.rsd3[[2]] +
+           plot_layout(nrow = length(list.qc.files),
+                       tag_level = "new") +
+           plot_annotation(tag_levels = list(list.qc.files)),
+         width = 18,
+         height = length(list.qc.files)*9,
+         dpi = 700))
+    
+    
+  knitr::include_graphics("plots/4_techvar_comp.png")
+  
+  
+  }
+
+if(length(as.data.frame(list.data$RSD$QC)) <= 2){
+  
+  noquote("No QC samples were detected in the input data.")
+  
+}
+
+
+if (params$rendered_by_shiny)
+  shiny::setProgress(value = 0.75,
+                     message = "Evaluating QC relative standard deviations...")
+
+
+```
+
+**Figure 4.** Scatter plots of the RSDs for each annotated compound in each **quality control type** used during data acquisition. Compounds in the specified data set(s) that exceed 50% RSD are flagged.
+
+
+
+
+
+```{r var-rsd-samp, echo=F, fig.align= "center", out.width="90%", results=T, message=F, warning=F}
+
+#### RSD of experimental samples within each group ####
+
+## Input
+
+list.data[["RSD"]][["Samp"]] <- parLapply(clus1,
+                                        list.qc.nos,
+                                        function(x) dplyr::filter(list.data$Imputed[[x]],
+                                                                  .data[["sampleType"]] == "Sample")
+                                        )
+
+names(list.data$RSD$Samp) <- list.qc.data$File.ID
+
+clusterExport(clus1,varlist = c("list.data"))
+
+
+list.data$RSD[["Samp - Plots"]] <- parLapply(clus1,
+                                           list.qc.nos,
+                                           function(x) fun.rsd.qc(list.data$RSD$Samp[[x]],
+                                                                  x,
+                                                                  "Group",
+                                                                  col1a,
+                                                                  "Technical Variance - Group Compound RSD")
+                                           )
+
+names(list.data$RSD$`Samp - Plots`) <- list.qc.data$File.ID
+
+clusterExport(clus1,varlist = c("list.data"))
+
+
+## Plot
+
+p.rsd4 <- lapply(list.qc.nos,
+                 function(x) list.data$RSD$`Samp - Plots`[[x]]$Plot)
+
+names(p.rsd4) <- list.qc.data$File.ID
+
+ifelse(length(p.rsd4) < 2,
+       ggsave("plots/4_sampvar_comp.png",
+       p.rsd4[[1]] +
+         plot_layout(nrow = length(list.qc.files),
+                     tag_level = "new") +
+         plot_annotation(tag_levels = list(list.qc.files)),
+       width = 18,
+       height = length(list.qc.files)*9,
+       dpi = 700),
+       ggsave("plots/4_sampvar_comp.png",
+       p.rsd4[[1]] + 
+         p.rsd4[[2]] +
+         plot_layout(nrow = length(list.qc.files),
+                     tag_level = "new") +
+         plot_annotation(tag_levels = list(list.qc.files)),
+       width = 18,
+       height = length(list.qc.files)*9,
+       dpi = 700))
+
+
+knitr::include_graphics("plots/4_sampvar_comp.png")
+
+
+if (params$rendered_by_shiny)
+  shiny::setProgress(value = 0.8,
+                     message = "Evaluating QC group relative standard deviations...")
+
+
+```
+
+**Figure 5.** Scatter plots of the RSDs for each annotated compound in each **sample group** used during data acquisition. RSD values for all compounds in the specified data set(s) are included as a separate output table.
+
+
+
+
+
+### **Sample Type Variance**
+
+Spearman correlations were calculated for all samples in the chosen data set(s) to assess intra-group variation among each sample type. The resulting correlation matrices are included in **Figure 6** and clustered based on euclidean distance.
+
+```{r samp-cor, echo=F, fig.align= "center", results=T, message=F, warning=F,out.width="60%"}
+
+#### Correlation Analysis ####
+
+list.data[["Correlation"]] <- parLapply(clus1,
+                                        list.qc.nos,
+                                        function(x) fun.hm.in(list.data$Imputed[[x]],
+                                                              x,
+                                                              "sampleType",
+                                                              "Group",
+                                                              list.qc.data[x,"File.ID"])
+                                        )
+
+names(list.data$Correlation) <- list.qc.data$File.ID
+
+hm.out <- lapply(list.qc.nos,
+                 function(x) list.data$Correlation[[x]]$Plot)
+
+names(hm.out) <- list.qc.data$File.ID
+
+
+## plot
+
+png("plots/5_sample_correlation1.png",
+    width = 22,
+    height = 18,
+    units = "cm",
+    res = 700)
+  
+print(hm.out[[1]])
+
+dev.off()
+  
+
+if(length(hm.out) == 2) {
+  
+  png("plots/5_sample_correlation2.png",
+    width = 22,
+    height = 18,
+    units = "cm",
+    res = 700)
+  
+  print(hm.out[[2]])
+
+  dev.off()
+  
+}
+
+if(length(list.qc.data[["File.ID"]]) == 2) {
+  
+  path.cor <- as.vector(list.files(paste(getwd(),"/plots/",sep = "")))[grepl("correlation",
+        list.files(paste(getwd(),"/plots/",sep = "")))]
+}
+
+if(length(list.qc.data[["File.ID"]]) == 1) {
+  
+  path.cor <- as.vector(list.files(paste(getwd(),"/plots/",sep = "")))[grepl("correlation1",
+        list.files(paste(getwd(),"/plots/",sep = "")))]
+}
+
+
+path.cor <- paste("plots/",path.cor,sep = "")
+
+knitr::include_graphics(path.cor)
+
+if (params$rendered_by_shiny)
+  shiny::setProgress(value = 0.9,
+                     message = "Performing sample correlation analysis...")
+
+```
+
+**Figure 6.** Correlation matrices stratified by sample type for the specified data set(s).
+
+
+
+
+
+Lastly, the median RSD values for quality control samples in the specified data set(s) and the number of compounds with RSD values less than 20% are listed as **Table 2** if quality control samples are included in the input data. 
+
+```{r rsd-sum, echo=F, fig.align= "center", results=T, message=F, warning=F, out.width="75%"}
+
+#### RSD Summary ####
+  
+# Calculate median RSD and number of compounds below 20% in each QC
+
+if(length(as.data.frame(list.data$RSD$QC)) > 2){
+
+rsd.sum <- dplyr::bind_rows(lapply(list.qc.nos,
+                                   function(x) setNames(
+                                     aggregate(
+                                       list.data$RSD$`QC - Plots`[[x]]$Data$value,
+                                       list(list.data$RSD$`QC - Plots`[[x]]$Data[["variable"]]),
+                                       function(y) median(y)
+                                       ),
+                                     c("Group","Median RSD %")
+                                     )
+                                   )
+                            )
+
+rsd.thr <- dplyr::bind_rows(lapply(list.qc.nos,
+                                   function(x) setNames(dplyr::select(
+                                     dplyr::filter(
+                                       dplyr::count(
+                                         dplyr::group_by(
+                                           list.data$RSD$`QC - Plots`[[x]]$Data,
+                                           .data[["variable"]]),
+                                         .data[["value"]] < 20),
+                                       `.data[["value"]] < 20` == T),
+                                     c("variable","n")
+                                     ),
+                                     c("Group","RSD < 20%")
+                                     )
+                                   )
+                            )
+
+rsd.tab <- dplyr::left_join(rsd.sum,
+                            rsd.thr,
+                            by = "Group") %>%
+  dplyr::left_join(dplyr::bind_rows(lapply(list.qc.nos,
+                     function(x) data.frame("File.ID" = list.qc.data[x,"File.ID"],
+                                            "Group" = as.character(
+                                              levels(list.data$RSD$`QC - Plots`[[x]]$Data$variable)
+                                              )
+                                            )
+                     )
+                 ),
+                 .data,
+                 by = "Group")
+
+
+kable_styling(kbl(rsd.tab,
+                  table.attr = "style = 'width:50%;'",
+                  format = "html"),
+              position = "center") 
+}
+
+if(length(as.data.frame(list.data$RSD$QC)) < 2){
+  
+  noquote("No QC samples were detected in the input data.")
+  
+}
+
+
+if (params$rendered_by_shiny)
+  shiny::setProgress(value = 0.95,
+                     message = "Returning QC relative standard deviation metrics...")
+
+```
+
+**Table 2.** Median RSD values (%) for each type of quality control sample. The number of compounds below 20% RSD within each sample type is specified for each input file.
+
+
+
+```{r tab-output, echo=F, fig.align= "center", results=F, message=F, warning=F}
+
+# Save all relevant tables
+
+## Input parameters
+
+write.table(list.qc.data,
+            "tables/input_params.txt",
+            sep = "\t")
+
+lapply(list.qc.nos,
+       function(x) {
+         
+         # Imputed Data
+         
+         write.table(list.data$Imputed[[x]],
+                     file = paste("tables/","impt_",
+                                  gsub("\\..*","",
+                                  list.qc.data[x,"File.ID"]),
+                                  ".txt",
+                                  sep = ""),
+                     sep = "\t")
+         
+         
+         # Log2-Transformed Data
+         
+         write.table(list.data$Transformations[[x]]$Data$`Log2 Datasheet`,
+                     file = paste("tables/","log2_",
+                                  gsub("\\..*","",
+                                  list.qc.data[x,"File.ID"]),
+                                  ".txt",
+                                  sep = ""),
+                     sep = "\t")
+         
+              
+         # Outlier Data
+         
+         write.table(list.data$PCA[[x]]$`Outlier Detection`,
+                     file = paste("tables/","out_s_",
+                                  gsub("\\..*","",
+                                  list.qc.data[x,"File.ID"]),
+                                  ".txt",
+                                  sep = ""),
+                     sep = "\t")     
+         
+         
+         # QC RSD
+         
+         write.table(list.data$RSD$`QC - Plots`[[x]]$Data,
+                     file = paste("tables/","rsd_q_",
+                                  gsub("\\..*","",
+                                  list.qc.data[x,"File.ID"]),
+                                  ".txt",
+                                  sep = ""),
+                     sep = "\t")       
+         
+         
+         # Samp RSD
+         
+         write.table(list.data$RSD$`Samp - Plots`[[x]]$Data,
+                     file = paste("tables/","rsd_s_",
+                                  gsub("\\..*","",
+                                  list.qc.data[x,"File.ID"]),
+                                  ".txt",
+                                  sep = ""),
+                     sep = "\t")
+         
+         # Median RSD
+         if(length(as.data.frame(list.data$RSD$QC)) > 2){
+                write.table(rsd.tab,
+                            file = paste("tables/",
+                                         "rsd_median",
+                                         ".txt",
+                                         sep = ""),
+                            sep = "\t")
+           }
+         
+         }
+       )
+
+
+# Save all data as .rds for loading into R
+         
+saveRDS(list.data,"tables/MSQuickQC_session.rds")
+
+
+if (params$rendered_by_shiny)
+  shiny::setProgress(value = 0.975,
+                     message = "Saving session objects...")
+
+
+```
+ 
+
+
+
+
+```{r zipo-output, echo=F, fig.align= "center", results=F, message=F, warning=F}
+
+# Download plots and tables as .zip files
+
+zip("plots.zip",
+    "plots")
+
+zip("tables.zip",
+    "tables")
+
+if (params$rendered_by_shiny)
+  shiny::setProgress(value = 0.99,
+                     message = "Zipping result plots and tables...")
+
+```
+
+
+
+
+
+
+
