@@ -28,16 +28,24 @@ list.qc.data <- cbind(list.qc.data,
 
 ## Data imputation
 
-### Replace zero values with 1/10 of the lowest non-zero value for log transformation
+
+### Replace NA and zero values with 1/10 of the lowest non-zero value for log transformation
 
 list.data[["Imputed"]] <- lapply(list.qc.nos,
-                                    function(x) as.data.frame(lapply(list.data[[x]][["Datasheet"]],
-                                                                     function(y) ifelse(y == 0,
-                                                                                        0.1*min(x[x > 0]),
-                                                                                        y)
-                                                                     )
-                                                              )
-                                    )
+                                    function(x) 
+                                      as.data.frame(
+                                        lapply(
+                                          list.data[[x]][["Datasheet"]],
+                                          function(y) {
+
+                                            ifelse(y == 0 |
+                                                     is.na(y),
+                                                   0.1*min(x[x > 0]),
+                                                   y)
+                                            }
+                                          )
+                                        )
+                                 )
 
 names(list.data[["Imputed"]]) <- list.qc.data[["File.ID"]]
 
