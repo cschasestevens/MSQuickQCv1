@@ -375,7 +375,8 @@ if (params$rendered_by_shiny)
 list.data[["RSD"]][["Samp"]] <- lapply(
                                         list.qc.nos,
                                         function(x) dplyr::filter(list.data$Imputed[[x]],
-                                                                  .data[["sampleType"]] == "Sample")
+                                                                  .data[["sampleType"]] == "Sample" |
+                                                                    .data[["sampleType"]] == "sample")
                                         )
 
 names(list.data$RSD$Samp) <- list.qc.data$File.ID
