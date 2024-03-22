@@ -58,7 +58,7 @@
         # Density Plot
         
         geom_density(color = 'darkslategrey', 
-                     fill = col1b[[2]]) +
+                     fill = col.univ[[1]]) +
         
         # Plot Theme
         
@@ -183,7 +183,7 @@
       
       thm.mult +
       
-      scale_fill_manual(values = col1b)
+      scale_fill_manual(values = col.univ)
     
     
     ## OUTLIER DETECTION ##
@@ -263,8 +263,8 @@
       
       geom_text_repel(data = subset(d.out, 
                                     Outlier == 1),
-                      aes(label = d.out[d.out$Outlier == 1,"label"],
-                          size = 8),
+                      aes(label = d.out[d.out$Outlier == 1,"label"]),
+                      size = 4,
                       segment.size = 0.1,
                       segment.color = "grey",
                       show.legend = F,
@@ -276,7 +276,7 @@
       
       thm.mult +
       
-      scale_fill_manual(values = col1b) +
+      scale_fill_manual(values = col.univ) +
       
       ggtitle("Technical Variance - PCA")
     
@@ -294,8 +294,8 @@
       
       geom_text_repel(data = subset(d.out, 
                                     Outlier == 1),
-                      aes(label = d.out[d.out$Outlier == 1,"label"],
-                          size = 8),
+                      aes(label = d.out[d.out$Outlier == 1,"label"]),
+                      size = 4,
                       segment.size = 0.1,
                       segment.color = "grey",
                       show.legend = F,
@@ -310,7 +310,7 @@
       
       thm.mult +
       
-      scale_fill_manual(values = col1b) +
+      scale_fill_manual(values = col.univ) +
       
       ggtitle("Sample Standard Deviations from Mean mTIC")
     
@@ -347,6 +347,15 @@
                                             )
                         )
     
+    d.std[["sampleType"]] <- factor(
+      d.std[["sampleType"]],
+      levels = c(
+        "qc1",
+        "qc2",
+        "Sample"
+        )
+      )
+    
     
     # Plot
     
@@ -359,7 +368,7 @@
       geom_point(shape=21, 
                  col="black", 
                  size = 3,
-                 alpha = 0.75) +
+                 alpha = 0.9) +
       
       geom_hline(yintercept = mean(d.std[,c("iSTD.avg")]),
                  linetype = "dashed") +
@@ -371,7 +380,7 @@
       
       ggtitle("Internal Standard Avg. Intensity") +
       
-      scale_fill_manual(values = col1b)
+      scale_fill_manual(values = col.univ)
     
     return(p.std)
     
@@ -386,15 +395,22 @@
     ifelse(qc[["qc1"]] == "NA",
            ifelse(qc[["qc2"]] == "NA",
                   ifelse(qc[["qc3"]] == "NA",
-                         q.rsd <- 0,
-                         q.rsd <- df[grepl(paste(qc[["qc3"]],
+                         ifelse(qc[["Sample"]] == "NA",
+                                q.rsd <- 0,
+                                q.rsd <- df[grepl(paste(qc[["Sample"]],
+                                                        sep = ""),
+                                                  df[["sampleType"]]),]),
+                         q.rsd <- df[grepl(paste(qc[["Sample"]],"|",
+                                                 qc[["qc3"]],
                                                  sep = ""),
                                            df[["sampleType"]]),]),
-                  q.rsd <- df[grepl(paste(qc[["qc2"]],"|",
+                  q.rsd <- df[grepl(paste(qc[["Sample"]],"|",
+                                          qc[["qc2"]],"|",
                                           qc[["qc3"]],
                                           sep = ""),
                                     df[["sampleType"]]),]),
-           q.rsd <- df[grepl(paste(qc[["qc1"]],"|",
+           q.rsd <- df[grepl(paste(qc[["Sample"]],"|",
+                                   qc[["qc1"]],"|",
                                    qc[["qc2"]],"|",
                                    qc[["qc3"]],
                                    sep = ""),
@@ -416,8 +432,6 @@
     ) %>%
       purrr::reduce(dplyr::left_join,
                     by = "Group.1")
-    
-    ?purrr::reduce
     
     names(q.rsd.calc) <- c(grp,
                            names(df[,(list.qc.data[l1,"Metadata.col"] + 1):ncol(df)]))
@@ -454,8 +468,8 @@
       
       geom_text_repel(data = subset(p.rsd, 
                                     value > 50),
-                      aes(label = p.rsd[p.rsd$value > 50,"Name"],
-                          size = 6),
+                      aes(label = p.rsd[p.rsd$value > 50,"Name"]),
+                      size = 3,
                       segment.size = 0.1,
                       segment.color = "grey",
                       show.legend = F,
@@ -520,9 +534,9 @@
     
     set.seed(1234)
     
-    fun.hm.bar <- list("Sample Type" = setNames(col1a[1:length(as.character(unique(h.in[[grp]])))],
+    fun.hm.bar <- list("Sample Type" = setNames(col.univ[1:length(as.character(unique(h.in[[grp]])))],
                                                 as.character(levels(h.in[[grp]]))),
-                       "Group" = setNames(as.vector(sample(col1a,
+                       "Group" = setNames(as.vector(sample(col.univ,
                                                            size = length(as.character(
                                                              unique(
                                                                h.in[[grp2]]))))),

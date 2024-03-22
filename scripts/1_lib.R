@@ -31,6 +31,15 @@ col2a <- viridis::viridis(12)
 col3a <- c(viridis::mako(12),
            viridis::inferno(12))
 
+# Universal color scale (for 10 groups or less)
+
+col.univ <- pal_npg("nrc")(10)
+
+
+
+
+
+
 
 
 
