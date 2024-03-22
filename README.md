@@ -57,6 +57,13 @@ Nathanial_Stevens@med.unc.edu
 cschasestevens@gmail.com
 https://www.linkedin.com/in/nathanial-chase-stevens-phd-08775180/
 
+## Contributors
+
+* Uri Keshet, PhD, University of California Davis
+* Tong Shen, PhD, University of California Davis
+* Luis Valdiviez, University of California Davis
+* Oliver Fiehn, PhD, University of California Davis
+
 ## Version History
 * 1.1
     * Added function to load previous input parameters specified by user
