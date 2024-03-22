@@ -1,4 +1,4 @@
-# MSQuickQC v1.0
+# MSQuickQC v1.1
 
 Performs rapid quality control assessment of single or paired mass spectrometry datasets.
 
@@ -24,6 +24,7 @@ Untargeted metabolomics data must be technically robust to derive biological fin
     * ggplot2
     * purrr
     * ggpubr
+    * ggsci
     * ggrepel
     * RColorBrewer
     * circlize
@@ -57,7 +58,11 @@ cschasestevens@gmail.com
 https://www.linkedin.com/in/nathanial-chase-stevens-phd-08775180/
 
 ## Version History
-
+* 1.1
+    * Added function to load previous input parameters specified by user
+    * Modified plotting order of internal standard sample types
+    * Added plot panel and table for assessing overall group median RSD and group compound RSD
+    * Changed default plot color scheme
 * 1.0
     * Initial Release
 
