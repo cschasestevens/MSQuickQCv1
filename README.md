@@ -52,10 +52,10 @@ Untargeted metabolomics data must be technically robust to derive biological fin
 
 ## Authors
 
-Nathanial Chase Stevens, PhD
-Nathanial_Stevens@med.unc.edu
-cschasestevens@gmail.com
-https://www.linkedin.com/in/nathanial-chase-stevens-phd-08775180/
+* Nathanial Chase Stevens, PhD, University of North Carolina at Chapel Hill
+* Email: Nathanial_Stevens@med.unc.edu
+* Alternate email: cschasestevens@gmail.com
+* LinkedIn: https://www.linkedin.com/in/nathanial-chase-stevens-phd-08775180/
 
 ## Contributors
 
