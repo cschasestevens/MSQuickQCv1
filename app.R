@@ -24,11 +24,28 @@ library(magrittr)
 library(viridis)
 library(patchwork)
 library(kableExtra)
+library(ggsci)
 
 ## Source scripts
 
 source("scripts/1_lib.R",
        local = knitr::knit_global())
+
+## Parameter list (if present in working directory)
+if(
+  file.exists(
+    "qc_params.txt"
+    )
+  ) {
+  
+  list.params <- read.table("qc_params.txt",header = T,sep = "\t")
+  
+  }
+
+exists("list.params")
+
+
+
 
 #### UI ####
 
@@ -100,61 +117,126 @@ ui.upload.title <- column(12,
                           h4("Input Parameters"),
                           id = "tupl")
 
-ui.upload <- column(12,
-                    
-                    # Input files
-                    column(6,
-                           h5("Input File(s):"),
-                    fileInput('file1',
-                              "Select data files...",
-                              multiple = T,
-                              accept = c(".xlsx",".csv",".txt")),
-                    
-                    # List parameter section
-                    h5("List Parameters:",
-                       br("- type 'NA' if not used"),
-                       br("and separate entries for 2-file inputs by a ",
-                          strong(",",style = "color: #E74C3C")
-                         )
-                       ),
-                    textInput("qc1","QC #1",
-                              value = "ex. qc1 or qc1a,qc1b"),
-                    textInput("qc2","QC #2",
-                              value = "ex. qc2 or qc2a,qc2b"),
-                    textInput("qc3","QC #3",
-                              value = "ex. qc3 or qc3a,qc3b"),
-                    textInput("istd","Internal Standard Identifier (provide one)",
-                              value = "iSTD"),
-                    textInput("md","Metadata Columns",
-                                 value = "4,4"),
-                    textInput("date","Acquisition Date(s) (yyyy/mm/dd)",
-                              value = "ex. 2024/01/01 or 2024/01/01,2024/01/01"),
-                    textInput("study","Study Name (provide one)",
-                              value = "Mouse lung lipidomics"),
-                    textInput("plat","Analysis Platform(s)",
-                              value = "ex. CSH or CSH,HILIC")),
-                    column(6,
-                           textInput("polar","Polarity",
-                              value = "ex. POS or POS,NEG"),
-                    textInput("instr","Instrument(s)",
-                              value = "ex. Thermo Q-Exactive HF or QEHF,QTOF"),
-                    textInput("proc","Processing Software",
-                              value = "ex. MS-DIAL v.4.0 or MS-DIAL v.4.0,MS-DIAL v.4.1"),
-                    textInput("norm","Normalization Method",
-                              value = "ex. SERRF or Raw,SERRF"),
-                    textInput("auth","Report Author (provide one)","Insert Name"),
-                    
-                    ## After input params are specified
-                    actionButton("submit","Generate Parameter List"),
-                    
-                    # Report generation/downloads
-                    h5('Quality Control Screening:'),
-                    downloadButton("report", 
-                                   "Generate Report"),
-                    downloadButton("plots", 
-                                   "Download Plots"),
-                    downloadButton("tables", 
-                                   "Download Tables")))
+
+
+ifelse(exists("list.params"),
+       ui.upload <- column(12,
+                           
+                           # Input files
+                           column(6,
+                                  h5("Input File(s):"),
+                                  fileInput('file1',
+                                            "Select data files...",
+                                            multiple = T,
+                                            accept = c(".xlsx",".csv",".txt")),
+                                  
+                                  # List parameter section
+                                  h5("List Parameters:",
+                                     br("- type 'NA' if not used"),
+                                     br("and separate entries for 2-file inputs by a ",
+                                        strong(",",style = "color: #E74C3C")
+                                     )
+                                  ),
+                                  
+                                  textInput("qc1","QC #1",
+                                            value = ifelse(is.na(list.params$qc1),
+                                                           "NA",list.params$qc1)),
+                                  textInput("qc2","QC #2",
+                                            value = ifelse(is.na(list.params$qc2),
+                                                           "NA",list.params$qc2)),
+                                  textInput("qc3","QC #3",
+                                            value = ifelse(is.na(list.params$qc3),
+                                                           "NA",list.params$qc3)),
+                                  textInput("istd","Internal Standard Identifier (provide one)",
+                                            value = ifelse(is.na(list.params$iSTD),
+                                                           "NA",list.params$iSTD)),
+                                  textInput("md","Metadata Columns",
+                                            value = list.params$Metadata.col),
+                                  textInput("date","Acquisition Date(s) (yyyy/mm/dd)",
+                                            value = list.params$Date),
+                                  textInput("study","Study Name (provide one)",
+                                            value = list.params$Study.Name),
+                                  textInput("plat","Analysis Platform(s)",
+                                            value = list.params$Platform)),
+                           column(6,
+                                  textInput("polar","Polarity",
+                                            value = list.params$Polarity),
+                                  textInput("instr","Instrument(s)",
+                                            value = list.params$Instrument),
+                                  textInput("proc","Processing Software",
+                                            value = list.params$Processing),
+                                  textInput("norm","Normalization Method",
+                                            value = list.params$Norm.meth),
+                                  textInput("auth","Report Author",
+                                            value = list.params$Report.Author),
+                                  
+                                  ## After input params are specified
+                                  actionButton("submit","Generate Parameter List"),
+                                  
+                                  # Report generation/downloads
+                                  h5('Quality Control Screening:'),
+                                  downloadButton("report", 
+                                                 "Generate Report"),
+                                  downloadButton("plots", 
+                                                 "Download Plots"),
+                                  downloadButton("tables", 
+                                                 "Download Tables"))),
+       ui.upload <- column(12,
+                           
+                           # Input files
+                           column(6,
+                                  h5("Input File(s):"),
+                                  fileInput('file1',
+                                            "Select data files...",
+                                            multiple = T,
+                                            accept = c(".xlsx",".csv",".txt")),
+                                  
+                                  # List parameter section
+                                  h5("List Parameters:",
+                                     br("- type 'NA' if not used"),
+                                     br("and separate entries for 2-file inputs by a ",
+                                        strong(",",style = "color: #E74C3C")
+                                     )
+                                  ),
+                                  
+                                  textInput("qc1","QC #1",
+                                            value = "ex. qc1 or qc1a,qc1b"),
+                                  textInput("qc2","QC #2",
+                                            value = "ex. qc2 or qc2a,qc2b"),
+                                  textInput("qc3","QC #3",
+                                            value = "ex. qc3 or qc3a,qc3b"),
+                                  textInput("istd","Internal Standard Identifier (provide one)",
+                                            value = "iSTD"),
+                                  textInput("md","Metadata Columns",
+                                            value = "4,4"),
+                                  textInput("date","Acquisition Date(s) (yyyy/mm/dd)",
+                                            value = "ex. 2024/01/01 or 2024/01/01,2024/01/01"),
+                                  textInput("study","Study Name (provide one)",
+                                            value = "Mouse lung lipidomics"),
+                                  textInput("plat","Analysis Platform(s)",
+                                            value = "ex. CSH or CSH,HILIC")),
+                           column(6,
+                                  textInput("polar","Polarity",
+                                            value = "ex. POS or POS,NEG"),
+                                  textInput("instr","Instrument(s)",
+                                            value = "ex. Thermo Q-Exactive HF or QEHF,QTOF"),
+                                  textInput("proc","Processing Software",
+                                            value = "ex. MS-DIAL v.4.0 or MS-DIAL v.4.0,MS-DIAL v.4.1"),
+                                  textInput("norm","Normalization Method",
+                                            value = "ex. SERRF or Raw,SERRF"),
+                                  textInput("auth","Report Author (provide one)","Insert Name"),
+                                  
+                                  ## After input params are specified
+                                  actionButton("submit","Generate Parameter List"),
+                                  
+                                  # Report generation/downloads
+                                  h5('Quality Control Screening:'),
+                                  downloadButton("report", 
+                                                 "Generate Report"),
+                                  downloadButton("plots", 
+                                                 "Download Plots"),
+                                  downloadButton("tables", 
+                                                 "Download Tables"))))
 
 
 #### UI - Data Preview ####
@@ -451,7 +533,7 @@ server = function(input, output){
                                                      qc3 = input$qc3,
                                                      iSTD = input$istd,
                                                      Metadata.col = as.numeric(input$md),
-                                                     Date = input$date,
+                                                     Date= input$date,
                                                      Study.Name = input$study,
                                                      Platform = input$plat,
                                                      Polarity = input$polar,
@@ -533,7 +615,7 @@ server = function(input, output){
                            
                            # Generate report
                            
-                           rmarkdown::render("MSQuickQC_v4_input_shiny.Rmd", 
+                           rmarkdown::render("MSQuickQC_v1.1_input_shiny.Rmd", 
                                              output_file = file,
                                              params = params,
                                              envir = new.env(parent = globalenv()

@@ -7,7 +7,7 @@ install.packages("shinyBS","DT","shinyFeedback","shiny",
                  "IMIFA","readxl","ggplot2","purrr",
                  "ggpubr","ggrepel","RColorBrewer",
                  "circlize","corrplot","magrittr","viridis",
-                 "patchwork","kableExtra","BiocManager")
+                 "patchwork","kableExtra","BiocManager","ggsci")
 
 
 ## Install Bioconductor packages
